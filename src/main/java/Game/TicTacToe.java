@@ -16,8 +16,8 @@ import java.util.*;
 
 public class TicTacToe extends Application {
 
-    private Image imgX;
-    private Image img0;
+    private final Image imgX;
+    private final Image img0;
     private final int[][] boardState;
     private final GridPane gridPane;
     private final List<Field> takenByX;
@@ -35,15 +35,11 @@ public class TicTacToe extends Application {
             for(int j = 0; j != 3; j++)
                 boardState[i][j] = 0;
         }
-        try{
-            ClassLoader classLoader = getClass().getClassLoader();
-            File fileX = new File(classLoader.getResource("x.jpg").getFile());
-            imgX = new Image(Path.of(fileX.getPath()).toString(), fieldWidth, filedHeight, false, false);
-            File file0 = new File(classLoader.getResource("o.jpg").getFile());
-            img0 = new Image(Path.of(file0.getPath()).toString(), fieldWidth, filedHeight, false, false);
-        }catch(NullPointerException e){
-            System.out.println("File not found");
-        }
+        ClassLoader classLoader = getClass().getClassLoader();
+        File fileX = new File(classLoader.getResource("x.jpg").getFile());
+        imgX = new Image(Path.of(fileX.getPath()).toString(), fieldWidth, filedHeight, false, false);
+        File file0 = new File(classLoader.getResource("o.jpg").getFile());
+        img0 = new Image(Path.of(file0.getPath()).toString(), fieldWidth, filedHeight, false, false);
     }
 
     private boolean checkWinConditionForPlayer(Field field){
@@ -147,11 +143,14 @@ public class TicTacToe extends Application {
                 temp.setOnMouseClicked(r -> {
                     gridPane.add(new ImageView(imgX), I, J);
                     Field field = new Field(J, I);
-                    if(checkWinConditionForPlayer(field))
-                        EndGameBox.endGame("You have won");
+                    boolean check = checkWinConditionForPlayer(field);
                     takenByX.add(field);
-                    if(takenByX.size() + takenBy0.size() < 9)
+                    if(check)
+                        EndGameBox.endGame("You have won");
+                    if(takenByX.size() + takenBy0.size() < 9 && !check)
                         computersMove();
+                    else if(takenByX.size() + takenBy0.size() == 9 && !check)
+                        EndGameBox.endGame("Draw");
                 });
             }
         }
