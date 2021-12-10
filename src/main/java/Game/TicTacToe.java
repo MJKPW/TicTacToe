@@ -24,9 +24,10 @@ public class TicTacToe extends Application {
     private final List<Field> takenBy0;
     private final int fieldWidth = 150;
     private final int filedHeight = 150;
-    private final Random rnd = new Random();
+    private final Random rnd;
 
     public TicTacToe(){
+        rnd = new Random();
         gridPane = new GridPane();
         takenByX = new LinkedList<>();
         takenBy0 = new LinkedList<>();
@@ -42,8 +43,7 @@ public class TicTacToe extends Application {
         img0 = new Image(Path.of(file0.getPath()).toString(), fieldWidth, filedHeight, false, false);
     }
 
-    private boolean checkWinConditionForPlayer(Field field){
-        boardState[field.getRow()][field.getColumn()] = 1;
+    private boolean checkWinCondition(int choice){
 
         int firstDiagonalCounter = 0;
         int secondDiagonalCounter = 0;
@@ -51,58 +51,23 @@ public class TicTacToe extends Application {
         for (int i = 0; i != 3; i++) {
             int rowCounter = 0;
             int columnCounter = 0;
-            if(boardState[i][i] == 1){
+            if(boardState[i][i] == choice){
                 firstDiagonalCounter++;
                 if(firstDiagonalCounter == 3)
                     return true;
             }
-            if(boardState[i][2-i] == 1){
+            if(boardState[i][2-i] == choice){
                 secondDiagonalCounter++;
                 if(secondDiagonalCounter == 3)
                     return true;
             }
             for (int j = 0; j != 3; j++) {
-                if(boardState[i][j] == 1){
+                if(boardState[i][j] == choice){
                     rowCounter++;
                     if(rowCounter == 3)
                         return true;
                 }
-                if(boardState[j][i] == 1){
-                    columnCounter++;
-                    if(columnCounter == 3)
-                        return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private boolean checkWinConditionForComputer(Field field){
-        boardState[field.getRow()][field.getColumn()] = -1;
-
-        int firstDiagonalCounter = 0;
-        int secondDiagonalCounter = 0;
-
-        for (int i = 0; i != 3; i++) {
-            int rowCounter = 0;
-            int columnCounter = 0;
-            if(boardState[i][i] == -1){
-                firstDiagonalCounter++;
-                if(firstDiagonalCounter == 3)
-                    return true;
-            }
-            if(boardState[i][2-i] == -1){
-                secondDiagonalCounter++;
-                if(secondDiagonalCounter == 3)
-                    return true;
-            }
-            for (int j = 0; j != 3; j++) {
-                if(boardState[i][j] == -1){
-                    rowCounter++;
-                    if(rowCounter == 3)
-                        return true;
-                }
-                if(boardState[j][i] == -1){
+                if(boardState[j][i] == choice){
                     columnCounter++;
                     if(columnCounter == 3)
                         return true;
@@ -118,7 +83,7 @@ public class TicTacToe extends Application {
         return flag_X && flag_0;
     }
 
-    private void computersMove(){
+    private void randomComputerMove(){
         while(true){
             int i = rnd.nextInt(3);
             int j = rnd.nextInt(3);
@@ -126,14 +91,15 @@ public class TicTacToe extends Application {
             if(checkIfTaken(field)){
                 takenBy0.add(field);
                 gridPane.add(new ImageView(img0), j, i);
-                if(checkWinConditionForComputer(field))
-                    EndGameBox.endGame("Computer has won");
+                boardState[i][j] = -1;
+                if(checkWinCondition(-1))
+                    EndGameBox.endGame("You have lost");
                 break;
             }
         }
     }
 
-    private void begin() {
+    private void createBoard() {
         for(int i = 0; i != 3 ; i++) {
             for (int j = 0; j != 3; j++) {
                 final int I = i;
@@ -143,13 +109,14 @@ public class TicTacToe extends Application {
                 temp.setOnMouseClicked(r -> {
                     gridPane.add(new ImageView(imgX), I, J);
                     Field field = new Field(J, I);
-                    boolean check = checkWinConditionForPlayer(field);
-                    takenByX.add(field);
-                    if(check)
+                    boardState[J][I] = 1;
+                    boolean outcome = checkWinCondition(1);
+                    if(outcome)
                         EndGameBox.endGame("You have won");
-                    if(takenByX.size() + takenBy0.size() < 9 && !check)
-                        computersMove();
-                    else if(takenByX.size() + takenBy0.size() == 9 && !check)
+                    takenByX.add(field);
+                    if(takenByX.size() + takenBy0.size() < 9 && !outcome)
+                        randomComputerMove();
+                    else if(takenByX.size() + takenBy0.size() == 9 && !outcome)
                         EndGameBox.endGame("Draw");
                 });
             }
@@ -162,7 +129,7 @@ public class TicTacToe extends Application {
         gridPane.setVgap(5);
         gridPane.setHgap(5);
         gridPane.setAlignment(Pos.CENTER);
-        begin();
+        createBoard();
 
         Scene scene = new Scene(gridPane, 4*fieldWidth, 4*filedHeight);
 
