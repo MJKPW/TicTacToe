@@ -8,6 +8,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import java.io.File;
 import java.nio.file.Path;
@@ -16,6 +18,10 @@ import java.util.*;
 
 public class TicTacToe extends Application {
 
+    private int playerScore;
+    private int computerScore;
+    private final Text player;
+    private final Text computer;
     private final Image imgX;
     private final Image img0;
     private final int[][] boardState;
@@ -29,6 +35,8 @@ public class TicTacToe extends Application {
     public TicTacToe(){
         rnd = new Random();
         gridPane = new GridPane();
+        player = new Text();
+        computer = new Text();
         takenByX = new LinkedList<>();
         takenBy0 = new LinkedList<>();
         boardState = new int[3][3];
@@ -92,14 +100,27 @@ public class TicTacToe extends Application {
                 takenBy0.add(field);
                 gridPane.add(new ImageView(img0), j, i);
                 boardState[i][j] = -1;
-                if(checkWinCondition(-1))
+                if(checkWinCondition(-1)) {
                     EndGameBox.endGame("You have lost");
+                    computerScore++;
+                    if(EndGameBox.nextStep)
+                        newGame();
+                }
                 break;
             }
         }
     }
 
     private void createBoard() {
+
+        player.setText("player: " + playerScore);
+        player.setFont(Font.font(16));
+        computer.setText("computer: " + computerScore);
+        computer.setFont(Font.font(16));
+
+        gridPane.add(player, 5, 0);
+        gridPane.add(computer, 5, 1);
+
         for(int i = 0; i != 3 ; i++) {
             for (int j = 0; j != 3; j++) {
                 final int I = i;
@@ -108,23 +129,43 @@ public class TicTacToe extends Application {
                 gridPane.add(temp, i, j);
                 temp.setOnMouseClicked(r -> {
                     gridPane.add(new ImageView(imgX), I, J);
-                    Field field = new Field(J, I);
                     boardState[J][I] = 1;
+                    Field filed = new Field(J, I);
+                    takenByX.add(filed);
                     boolean outcome = checkWinCondition(1);
-                    if(outcome)
+                    if(outcome){
                         EndGameBox.endGame("You have won");
-                    takenByX.add(field);
-                    if(takenByX.size() + takenBy0.size() < 9 && !outcome)
+                        playerScore++;
+                        if(EndGameBox.nextStep)
+                            newGame();
+                    }else if(takenByX.size() + takenBy0.size() < 9)
                         randomComputerMove();
-                    else if(takenByX.size() + takenBy0.size() == 9 && !outcome)
+                    else{
                         EndGameBox.endGame("Draw");
+                        playerScore++;
+                        computerScore++;
+                        if(EndGameBox.nextStep)
+                            newGame();
+                    }
                 });
             }
         }
     }
 
+    private void newGame(){
+        for(int i = 0; i != 3; ++i){
+            for(int j = 0; j != 3; ++j)
+                boardState[i][j] = 0;
+        }
+        takenBy0.clear();
+        takenByX.clear();
+        gridPane.getChildren().removeIf(node -> node.getClass() == ImageView.class);
+        player.setText("player: " + playerScore);
+        computer.setText("computer: " + computerScore);
+    }
+
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage)  {
 
         gridPane.setVgap(5);
         gridPane.setHgap(5);
@@ -134,7 +175,7 @@ public class TicTacToe extends Application {
         Scene scene = new Scene(gridPane, 4*fieldWidth, 4*filedHeight);
 
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Game");
+        primaryStage.setTitle("Tic tac toe");
         primaryStage.show();
     }
 
